@@ -151,12 +151,10 @@ void deleteFirst (List *L, infotype *X){
 		F.S. Elemen pertama list dihapus : nilai info disimpan pada X
 		dan alamat elemen pertama di-dealokasi
 	*/
-	address P = First(*L);
-	*X = Info(P);
-    if (Next(First(*L))==Nil)    // 1 element only
-        First(*L)=Nil;
-    else
-        First(*L)=Next(First(*L));
+	*X = Info(First(*L));
+	address P = Next(First(*L));
+	dealokasi(&First(*L));
+	First(*L) = P;
 }
 
 void deleteAfter (List *L, address *Pdel, address Prec){
@@ -165,10 +163,9 @@ void deleteAfter (List *L, address *Pdel, address Prec){
 	*/
 	*Pdel = Next(Prec);
 	if(*Pdel!=Nil) {
-		*Pdel = Next(Prec);
-		Next(Prec) = Next(Next(Prec));
+		Next(*Pdel) = Nil;
 	}
-	dealokasi(Pdel);
+	dealokasi(&(*Pdel));
 }
 
 void deleteLast(List *L, infotype *X){
@@ -176,22 +173,21 @@ void deleteLast(List *L, infotype *X){
 		F.S. Elemen terakhir list dihapus : nilai info disimpan pada X
 		dan alamat elemen terakhir di-dealokasi
 	*/
-	if(Next(First(*L))==Nil){
-		//one element only
+	address P = First(*L);
+	if(Next(P)==Nil){			// For list with one element
 		*X = Info(First(*L));
-		createList(L);
-	}else{
-		address prev = First(*L);
-		while(Next(prev)!=Nil ){
-			prev = Next(prev);
-		}
-		address last = prev;
-		*X = Info(last);
-		dealokasi(&last);
+		dealokasi(&First(*L));
+		First(*L) = Nil;
+	}else{						// For list with more than one elements (min 2 elmts)
+		while(Next(Next(P))!=Nil){
+			P = Next(P);
+		}// P is an element before last element
+		*X = Info(Next(P));
+		dealokasi(&Next(P));
+		Next(P) = Nil;
 	}
 }
-
-void printInfo (List L){
+void printInfo(List L){
 	/*	I.S. List mungkin kosong
 		F.S. Jika list tidak kosong,
 		Semua info yg disimpan pada elemen list diprint dengan format [elemen-1, elemen-2, elemen-3, ...]
@@ -208,19 +204,84 @@ void printInfo (List L){
 	}
 	cout << "]" << endl;
 }
-/* Pakai Fungsi-Fungsi yang ada di Master 
-dan tambahkan int main dibawah */
+/* gunakan fungsi pada master.cpp tambahkan fungsi dibawah dan int main */
+
+void Hapus (List *L){
+/* hapus nilai pertama list (deletefirst) jika element list (n%2==0) 
+ dan menghapus nilai terakhir list(deletelast) jika element list (n%3==0) */
+	address P = First(*L);
+	infotype X;
+	while(Next(P)!=Nil){
+		if(Info(P)%2==0){
+			deleteFirst(L,&X);
+		}
+		else if(Info(P)%3==0){
+			deleteLast(L,&X);
+		}
+		P=Next(P);
+	}
+	if(Info(P)%2==0){
+		deleteFirst(L,&X);
+	}
+	else if(Info(P)%3==0){
+		deleteLast(L,&X);
+	}
+}
+
+infotype max (List L){
+	/*	Mengirimkan nilai Info(P) yang maksimum */
+	int max = -Infinity;
+	address P = First(L);
+	while(P!=Nil){
+		if(max<Info(P))
+			max = Info(P);
+		P=Next(P);
+	}
+	return max;
+}
+
+void reverseList (List *L){
+	/*	I.S. L terdefinisi, boleh kosong
+		F.S. Elemen list L dibalik :
+		Elemen terakhir menjadi elemen pertama, dan seterusnya.
+		Membalik elemen list, tanpa melakukan alokasi/dealokasi.
+	*/
+	address next,curr,prev;
+	curr = First(*L);
+	next = Nil;
+	prev = Nil;
+	while(curr!=Nil){
+		next = Next(curr);
+		Next(curr) = prev;
+		prev = curr;
+		curr = next;
+	}
+	First(*L) = prev;
+}
+
+infotype min (List L){
+	/*	Mengirimkan nilai Info(P) yang minimum */
+	int min = Infinity;
+	address P = First(L);
+	while(P!=Nil){
+		if(min>Info(P))
+			min = Info(P);
+		P=Next(P);
+	}
+	return min;
+}
+
 int main(){
 	List L;
 	createList(&L);
 
-	//Soal A
+	//Soal D
 	int n,x;
 	cin>>n;
 	for (int i =0;i<n;i++){
-		cin>>x;
-		insertFirst(&L,x);
+		cin>>x;	
 		insertLast(&L,x);
 	}
+	Hapus(&L);
 	printInfo(L);
 }
